@@ -1,0 +1,46 @@
+# Makefile for spitest 
+
+### cross-build defs ###
+
+ifeq ($(strip $(OETMP)),)
+# make things fail if OETMP not defined, point to an invalid location
+        OETMP=/tmp
+endif
+
+TOOLDIR = $(OETMP)/sysroots/`uname -m`-linux/usr/bin
+STAGEDIR = ${OETMP}/sysroots/overo/usr
+
+# soft-float, any
+CC = ${TOOLDIR}/armv7a-vfp-neon-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc
+
+# hard-float, overo (cortex-a8)
+# CC = ${TOOLDIR}/cortexa8hf-vfp-neon-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc
+
+CFLAGS = -O2 -Wall
+
+LIBDIR = $(STAGEDIR)/lib
+INCDIR = $(STAGEDIR)/include
+
+### end cross-build defs ###
+
+
+OBJS = main.o
+
+TARGET = spitest
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -L $(LIBDIR) $(OBJS) -o $(TARGET)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -I $(INCDIR) -c -o $@ $<
+
+# modify address for your target
+install: $(TARGET)
+	scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $(TARGET) root@192.168.10.107:/home/root
+
+
+.PHONY: clean
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+

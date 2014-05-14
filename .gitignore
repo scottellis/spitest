@@ -1,0 +1,4 @@
+spitest
+*.o
+*.swp
+*~
